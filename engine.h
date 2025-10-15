@@ -21,6 +21,8 @@
 #include "util.h"
 #include "LockFreeQueue.h"
 #include "FileWriter.h"
+#include "log.h"
+#include "lily.h"
 
 using json = nlohmann::json;
 

@@ -58,8 +58,8 @@ presets.o: presets.cc presets.h
 SharedLibrary.o: SharedLibrary.cpp SharedLibrary.h Plugin.cpp Plugin.h PluginControl.cpp PluginControl.h
 	$(CPP) SharedLibrary.cpp Plugin.cpp PluginControl.cpp lv2_ext.cpp symap.c atom.cpp -c $(LV2) $(OPTIMIZE) $(GTK) 	
 
-engine.o: engine.cc engine.h snd.cc snd.h
-	$(CPP) engine.cc -c $(JACK) $(LV2) $(OPTIMIZE) $(SNDFILE) $(GTK)
+engine.o: engine.cc engine.h snd.cc snd.h lily.cc
+	$(CPP) engine.cc -c $(JACK) $(LV2) $(OPTIMIZE) $(SNDFILE) $(GTK) lily.cc
 
 clean:
 	rm -v *.o
@@ -105,10 +105,10 @@ win32-release:
 	export VER=$(VERSION) ; cd .. ; zip -r releases/amprack-$$VER.zip win/
 
 sync.o: sync.cc sync.h server.o
-	$(CPP) -c sync.cc $(GTK)
+	$(CPP) -c sync.cc $(GTK) $(LV2)
 
 server.o: server.cc server.h client.cc client.h winserver.cc winserver.h
-	$(CPP) -c winserver.cc server.cc client.cc $(GTK) -Wall 
+	$(CPP) -c winserver.cc server.cc client.cc $(GTK) -Wall  $(LV2)
 
 echo-client: echo-client.cc server.o
 	$(CPP) -o echo-client echo-client.cc client.cc $(GTK) -Wall

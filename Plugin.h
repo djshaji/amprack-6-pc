@@ -9,9 +9,10 @@
 #include "logging_macros.h"
 #include <vector>
 
+#ifdef _android
 #include "android/asset_manager.h"
 #include "android/asset_manager_jni.h"
-
+#endif
 #include "PluginControl.h"
 #include "SharedLibrary.h"
 #include "json.hpp"

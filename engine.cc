@@ -112,7 +112,7 @@ Engine::Engine () {
     lv2Plugins = new std::vector <std::string> ();
 
     amps = json {};
-    lv2Json = json {};
+    lv2Json = lily_getLv2Json ();
     ladspaJson = json {};
     categories = json {};
     creators = json {};
