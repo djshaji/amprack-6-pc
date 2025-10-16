@@ -49,7 +49,8 @@ public:
     
     static std::vector<Plugin *> * activePlugins ;
     bool addPlugin(char* library, int pluginIndex, SharedLibrary::PluginType _type) ;
-    bool openAudio ();
+    bool addPlugin_(char *library, int pluginIndex, SharedLibrary::PluginType _type);
+    bool openAudio();
     bool addPluginByName (char *);
     bool savePreset (std::string, std::string);
     bool load_preset (json );

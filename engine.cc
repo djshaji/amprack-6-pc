@@ -4,6 +4,12 @@ std::vector <Plugin *> *Engine::activePlugins = nullptr;
 
 bool Engine::addPlugin(char* library, int pluginIndex, SharedLibrary::PluginType _type) {
     IN
+    
+    OUT
+    return 0 ;
+}
+bool Engine::addPlugin_(char* library, int pluginIndex, SharedLibrary::PluginType _type) {
+    IN
     processor->bypass = true ;
     SharedLibrary * sharedLibrary = new SharedLibrary (library, _type);
 
