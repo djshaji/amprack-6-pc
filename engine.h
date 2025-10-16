@@ -31,7 +31,7 @@ public:
     int sampleRate ;
     FileWriter * fileWriter ;
     AudioDriver * driver = nullptr;
-    std::string home ;
+    std::string home, config ;
     std::vector <SharedLibrary *> libraries ;
     Processor * processor = nullptr ;
     char * libraryPath = nullptr; //= std::string ("libs/linux/x86_64/");

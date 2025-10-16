@@ -64,8 +64,10 @@ Engine::Engine () {
     
     # ifdef __linux__
         home = std::string (getenv("HOME")).append ("/amprack/recordings");
+        config = std::string (getenv("HOME")).append ("/.config/amprack");
     # else 
         home = std::string (getenv("USERPROFILE")).append ("/amprack/recordings");
+        config = std::string (getenv("USERPROFILE")).append ("/amprack");
     # endif
 
     g_mkdir_with_parents  (home.c_str (), 0777);
@@ -111,11 +113,17 @@ Engine::Engine () {
     ladspaPlugins  = new std::vector <std::string> ();
     lv2Plugins = new std::vector <std::string> ();
 
+    if (! std::filesystem::exists (config + "/lv2_plugins.json")) {
+        wtf ("lv2 plugins.json not found, creating...\n");
+       generateLV2Info (config);
+    }
+
     amps = json {};
-    lv2Json = lily_getLv2Json ();
+    lv2Json = filename_to_json (config + "/lv2_plugins.json");
+    // LOGD ("found %d lv2 plugins\n", lv2Json.size ());
     ladspaJson = json {};
-    categories = json {};
-    creators = json {};
+    categories = filename_to_json (config + "/lv2_categories.json");
+    creators = filename_to_json (config + "/lv2_creators.json");
     knobs = json {};
 
     //~ initLilv ();

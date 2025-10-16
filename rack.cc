@@ -491,7 +491,7 @@ GtkWidget * Rack::createPluginDialog () {
     //~ for (auto plugin : engine ->lv2Json) {
         auto plugin = it .value ();
         std::string a = plugin ["name"].dump() ;
-        //~ LOGD ("p: %s\n", it.key ().c_str ());
+        // LOGD ("p: %s\n", it.key ().c_str ());
         
         if (blacklist.contains (it.key ().c_str ())) {
             //~ LOGD ("blacklisted plugin: %s\n", a.c_str ()) ;
