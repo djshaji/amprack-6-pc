@@ -1,3 +1,8 @@
+label, entry, dropdown > button, button {
+    background: transparent;
+    color: #ffffff;
+}
+
 dropdown > button, button {
     background: #000000;
     color: #ffffff;
@@ -15,7 +20,7 @@ window, #rack {
     background: #000000;
     color: #ffffff;
 }
-notebook > header > tabs > tab, #header, entry, label {
+notebook > header > tabs > tab, #header, entry {
     background: #414141;
     color: #ffffff;
 }

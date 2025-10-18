@@ -8,6 +8,7 @@ int Processor::inputPorts2 [MAX_PLUGINS];
 int Processor::outputPorts [MAX_PLUGINS];
 int Processor::outputPorts2 [MAX_PLUGINS];
 void * Processor::handle [MAX_PLUGINS] ;
+LilvInstance * Processor::lilv_instance [MAX_PLUGINS] ;
 LockFreeQueueManager * Processor::lockFreeQueueManager;
 
 void (*Processor::connect_port [MAX_PLUGINS])(LADSPA_Handle Instance,
@@ -35,19 +36,20 @@ void Processor::process (int n_samples, float * in, float * data) {
     for (int i = 0 ; i < activePlugins ; i ++) {
         //~ LOGD ("[process plugin] %d", i);
         if (inputPorts [i] != -1)
-            connect_port [i] (handle [i], inputPorts [i], (LADSPA_Data *) data);
+            lilv_instance_connect_port ((LilvInstance *) lilv_instance [i], inputPorts [i], (LADSPA_Data *) data);
         if (outputPorts [i] != -1)
-            connect_port [i] (handle [i], outputPorts [i], (LADSPA_Data *) data);
+            lilv_instance_connect_port ((LilvInstance *) lilv_instance [i], outputPorts [i], (LADSPA_Data *) data);
 
         if (inputPorts2 [i] != -1)
-            connect_port [i] (handle [i], inputPorts2 [i], (LADSPA_Data *) data);
+            lilv_instance_connect_port ((LilvInstance *) lilv_instance [i], inputPorts2 [i], (LADSPA_Data *) data);
         if (outputPorts2 [i] != -1)
-            connect_port [i] (handle [i], outputPorts2 [i], (LADSPA_Data *) data);
+            lilv_instance_connect_port ((LilvInstance *) lilv_instance [i], outputPorts2 [i], (LADSPA_Data *) data);
 
-        if (run [i] == NULL)
-            LOGD ("run %d is null", i);
-        else
-            run [i] (handle [i], n_samples);
+        lilv_instance_run ((LilvInstance *) lilv_instance [i], n_samples);
+        // if (run [i] == NULL)
+        //     LOGD ("run %d is null", i);
+        // else
+        //     run [i] (handle [i], n_samples);
         /*
         if (set_run_adding_gain [i] != NULL)
             set_run_adding_gain [i] (handle [i], run_adding_gain [i]) ;

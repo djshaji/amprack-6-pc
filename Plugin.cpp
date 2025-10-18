@@ -131,6 +131,8 @@ void Plugin::print () {
     for (int i = 0 ; i < pluginControls.size() ; i ++) {
         pluginControls.at(i)->print();
     }
+    LOGD ("input ports: %d, %d\n", inputPort, inputPort2) ;
+    LOGD ("output ports: %d, %d\n", outputPort, outputPort2);
 }
 
 void Plugin::load () {
@@ -670,6 +672,15 @@ Plugin::Plugin (char * _uri, unsigned long _sampleRate, LilvWorld * world, const
     }
 
     lilv_plugin = lilv_plugins_get_by_uri(_plugins, uri);
+    instance = lilv_plugin_instantiate(lilv_plugin, sampleRate, NULL);
+    if (instance == nullptr) {
+        LOGF ("[%s:%s] could not instantiate lilv plugin from uri: %s", __FILE__, __PRETTY_FUNCTION__, _uri);
+        uri = nullptr;
+        return ;
+    }
+    lilv_instance_activate(instance);
+
+    lv2Descriptor = instance ->lv2_descriptor ;
 
     type = SharedLibrary::PluginType::LILV;
     sampleRate = _sampleRate ;
@@ -718,6 +729,10 @@ Plugin::Plugin (char * _uri, unsigned long _sampleRate, LilvWorld * world, const
         pluginControl->min = min_values[i];
         pluginControl->max = max_values[i];
         pluginControl->default_value = def_values[i];
+        pluginControl->def = (LADSPA_Data *) malloc (sizeof(LADSPA_Data));
+        lilv_instance_connect_port(instance, i, pluginControl->def);
+
+        pluginControl->lv2_name = std::string (lilv_node_as_string(lilv_port_get_name(lilv_plugin, port)));
 
         pluginControl->name = lilv_node_as_string(lilv_port_get_name(lilv_plugin, port));
         pluginControls.push_back(pluginControl);

@@ -163,6 +163,9 @@ hotkeys (MyWindow             *window,
         cssProvider2 =  gtk_css_provider_new();
         
     switch (keyval) {
+        case 'a':
+            window -> rack -> addPluginByName ((char *)"GxCabinet");
+            break ;
         case 65365:
             window -> rack -> next_preset ();
             break ;

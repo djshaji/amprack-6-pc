@@ -6,6 +6,7 @@
 #include <cstdio>
 #include "logging_macros.h"
 #include "LockFreeQueue.h"
+#include "lilv/lilv.h"
 
 # ifndef __linux__
 # include <windows.h>
@@ -26,6 +27,8 @@ public:
                                 LADSPA_Data   Gain);
 
     static void * handle [MAX_PLUGINS] ;
+    static LilvInstance * lilv_instance [MAX_PLUGINS] ;
+
     LADSPA_Data run_adding_gain [MAX_PLUGINS] ;
     const LADSPA_Descriptor * descriptor [MAX_PLUGINS] ;
     static int inputPorts [MAX_PLUGINS] ;
