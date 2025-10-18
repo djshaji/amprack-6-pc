@@ -7,6 +7,7 @@
 #include "lv2.h"
 #include "lv2/atom/atom.h"
 #include "json.hpp"
+#include "lilv/lilv.h"
 
 class PluginControl {
     const LADSPA_PortDescriptor *desc;
@@ -18,7 +19,8 @@ class PluginControl {
     unsigned long sample_rate = 48000;
 
 public:
-
+    const LilvPort* lilv_port; ///< Port description
+    int lilv_port_index; ///< Port index in plugin
     enum Type {
         FLOAT = 0,
         INT = 1,
@@ -76,6 +78,8 @@ public:
 
     PluginControl(const LADSPA_Descriptor *descriptor, int _port);
     PluginControl(const LV2_Descriptor *descriptor, nlohmann::json j);
+
+    PluginControl(const LilvPlugin *plugin, int index);
 
     void print();
 

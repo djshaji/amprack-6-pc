@@ -257,10 +257,10 @@ PluginUI * Rack::addPluginByName (char * requested) {
         //~ LOGD ("[lv2] %s | %s\n", requested, a.c_str());
         if (strcmp (a.c_str (), requested) == 0) {
             int index = plugin ["index"].get <int> () ;
-            std::string lib = plugin ["library"].dump () ;
-            lib = std::string (engine -> libraryPath) + lib.substr (1, lib.size () - 2);
+            std::string lib = plugin ["library"] ;
+            // lib = std::string (engine -> libraryPath) + lib.substr (1, lib.size () - 2);
             //~ LOGD ("found plugin %s: loading %s\n", requested, lib.c_str ());
-            res = engine ->addPlugin ((char *)lib.c_str (), index, SharedLibrary::PluginType::LV2);
+            res = engine ->addPlugin ((char *)lib.c_str (), index);
             if (plugin.contains ("file")) {
                 has_file = true ;                
                 file_type = (PluginFileType) plugin ["fileType"].get <int> ();
@@ -276,11 +276,11 @@ PluginUI * Rack::addPluginByName (char * requested) {
             a = a.substr (1, a.size () - 2);
             //~ LOGD ("[ladspa] %s | %s\n", requested, a.c_str());
             if (strcmp (a.c_str (), requested) == 0) {
-                std::string lib = plugin ["library"].dump () ;
+                std::string lib = plugin ["library"] ;
                 //~ LOGD ("[ladspa] found plugin %s: loading %s\n", requested, lib.c_str ());
                 int index = plugin ["plugin"].get <int> () ;
-                lib = std::string (engine -> libraryPath) + lib.substr (1, lib.size () - 2);
-                res = engine ->addPlugin ((char *)lib.c_str (), index, SharedLibrary::PluginType::LADSPA);
+                // lib = std::string (engine -> libraryPath) + lib.substr (1, lib.size () - 2);
+                res = engine ->addPlugin ((char *)lib.c_str (), index);
                 if (plugin.contains ("file") && plugin ["file"].get <bool>()) {
                     has_file = true ;                
                     file_type = (PluginFileType) plugin ["fileType"].get <int> ();
@@ -376,7 +376,7 @@ GtkWidget * Rack::addPluginEntry (std::string plug) {
 
 void Rack::add () {
     //~ engine -> addPlugin ("libs/dyson_compress_1403.so", 0, SharedLibrary::PluginType::LADSPA);
-    engine -> addPlugin ((char *)std::string ("http://drobilla.net/plugins/mda/Delay").c_str (), 0, SharedLibrary::PluginType::LILV);
+    engine -> addPlugin ((char *)std::string ("http://drobilla.net/plugins/mda/Delay").c_str (), 0);
     int index = engine -> activePlugins->size () - 1;
     PluginUI * ui = new PluginUI (engine, engine -> activePlugins->at (index), list_box, std::string ("Dyson Compressor"), index, false, this);
     // ui.index = index ;

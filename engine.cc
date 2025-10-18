@@ -2,11 +2,22 @@
 
 std::vector <Plugin *> *Engine::activePlugins = nullptr;
 
-bool Engine::addPlugin(char* library, int pluginIndex, SharedLibrary::PluginType _type) {
+bool Engine::addPlugin(char* uri, int pluginIndex) {
     IN
-    
+    processor->bypass = true ;
+
+    Plugin *plugin = new Plugin(uri, sampleRate, world, lilv_plugins);
+    if (plugin->uri != nullptr) {
+        activePlugins ->push_back(plugin);
+    } else {
+        LOGE ("cannot load %s!\n", uri);
+        processor->bypass = false ;
+        return false ;
+    }
+
+    processor->bypass = false ;
     OUT
-    return 0 ;
+    return true ;
 }
 bool Engine::addPlugin_(char* library, int pluginIndex, SharedLibrary::PluginType _type) {
     IN
@@ -59,6 +70,11 @@ bool Engine::openAudio () {
 
 Engine::Engine () {
     IN
+    world = lilv_world_new ();
+    lilv_world_load_all(world);
+    lilv_plugins = lilv_world_get_all_plugins(world);
+    activePlugins = new std::vector <Plugin *> ();
+
     #ifdef __linux__
     struct utsname name;
     if (uname (&name) == -1)
@@ -87,6 +103,15 @@ Engine::Engine () {
         LOGD ("[engine] %d\n", GetCurrentThreadId());
     # endif
     
+    if (std::filesystem::exists ("assets"))
+        assetPath = std::string ("assets");
+    else if (std::filesystem::exists ("/usr/share/amprack/assets"))
+        assetPath = std::string ("/usr/share/amprack/assets");
+    else  {
+        LOGD ("CANNOT FIND ASSETS!\n");
+        abort ();
+    }
+
     libraryPath = strdup (_p_.c_str ());
     wtf ("trying %s ...\n", libraryPath);
     if (! std::filesystem::exists (libraryPath)) {
@@ -130,7 +155,7 @@ Engine::Engine () {
     ladspaJson = json {};
     categories = filename_to_json (config + "/lv2_categories.json");
     creators = filename_to_json (config + "/lv2_creators.json");
-    knobs = json {};
+    knobs = filename_to_json (std::string (assetPath).append ("/knobs.json"));
 
     //~ initLilv ();
     queueManager = new LockFreeQueueManager ();
@@ -195,7 +220,7 @@ bool Engine::addPluginByName (char * pluginName) {
         
         if (strcmp (pluginName, name) == 0) {
             printf("[LV2] %s\n", name);        
-            return addPlugin ((char *)uri, 0, SharedLibrary::PluginType::LILV);
+            return addPlugin ((char *)uri, 0);
         }
 
         std::string s (uri);
@@ -206,7 +231,7 @@ bool Engine::addPluginByName (char * pluginName) {
         s = s.substr (x + 1, s.size ());
         if (s == stub) {
             LOGD ("found mapped plugin %s -> %s\n", pluginName, stub);
-            return addPlugin ((char *)uri, 0, SharedLibrary::PluginType::LILV);
+            return addPlugin ((char *)uri, 0);
         }
     }
 # endif

@@ -1,4 +1,5 @@
 #include "PluginControl.h"
+#include "lilv/lilv.h"
 
 LADSPA_Data PluginControl::control_rounding(LADSPA_Data _val)
 {
@@ -303,4 +304,13 @@ PluginControl::PluginControl(const LV2_Descriptor *descriptor, nlohmann::json j)
     }
 
     OUT ;
+}
+
+PluginControl::PluginControl(const LilvPlugin *plugin, int index) {
+    desc = nullptr ;
+    hint = nullptr ;
+    def = nullptr ;
+    lv2AtomSequence = nullptr ;
+    lilv_port = lilv_plugin_get_port_by_index(plugin, index);
+    lilv_port_index = index;
 }

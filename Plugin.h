@@ -79,6 +79,9 @@ public:
     std::string getLV2JSON_PC (std::string pluginName) ;
 #endif
 
+    LilvNode * uri = nullptr;
+    const LilvPlugin * lilv_plugin = nullptr ;
+    Plugin (char * _uri, unsigned long _sampleRate, LilvWorld * world, const LilvPlugins * _plugins) ;
     void setFileName(std::string filename);
     std::string loadedFileName ;
     int loadedFileType = -1 ;

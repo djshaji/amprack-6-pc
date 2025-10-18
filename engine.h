@@ -28,6 +28,8 @@ using json = nlohmann::json;
 
 class Engine {
 public:
+    LilvWorld * world = nullptr ;
+    const LilvPlugins* lilv_plugins = nullptr ;    
     int sampleRate ;
     FileWriter * fileWriter ;
     AudioDriver * driver = nullptr;
@@ -48,7 +50,7 @@ public:
     void set_atom_port (int index, int control, char * filename);
     
     static std::vector<Plugin *> * activePlugins ;
-    bool addPlugin(char* library, int pluginIndex, SharedLibrary::PluginType _type) ;
+    bool addPlugin(char* library, int pluginIndex) ;
     bool addPlugin_(char *library, int pluginIndex, SharedLibrary::PluginType _type);
     bool openAudio();
     bool addPluginByName (char *);

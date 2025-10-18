@@ -660,3 +660,69 @@ std::string Plugin::getLV2JSON_PC (std::string pluginName) {
     */
 }
 #endif
+
+Plugin::Plugin (char * _uri, unsigned long _sampleRate, LilvWorld * world, const LilvPlugins * _plugins) {
+    IN
+    uri = lilv_new_uri(world, _uri);
+    if (uri == nullptr) {
+        LOGF ("[%s:%s] could not create lilv node from uri: %s", __FILE__, __PRETTY_FUNCTION__, _uri);
+        return ;
+    }
+
+    lilv_plugin = lilv_plugins_get_by_uri(_plugins, uri);
+
+    type = SharedLibrary::PluginType::LILV;
+    sampleRate = _sampleRate ;
+
+    const uint32_t n_ports = lilv_plugin_get_num_ports(lilv_plugin);
+    float* min_values = (float*)calloc(n_ports, sizeof(float));
+    float* max_values = (float*)calloc(n_ports, sizeof(float));
+    float* def_values = (float*)calloc(n_ports, sizeof(float));
+
+    // Get the port ranges using the convenience function
+    lilv_plugin_get_port_ranges_float(lilv_plugin, min_values, max_values, def_values);
+    LilvNode* lv2_InputPort   = lilv_new_uri(world, LV2_CORE__InputPort);
+    LilvNode* lv2_OutputPort  = lilv_new_uri(world, LV2_CORE__OutputPort);
+    LilvNode* lv2_AudioPort   = lilv_new_uri(world, LV2_CORE__AudioPort);
+    LilvNode* lv2_ControlPort = lilv_new_uri(world, LV2_CORE__ControlPort);
+
+    for (uint32_t i = 0; i < n_ports; ++i) {
+        const LilvPort* port = lilv_plugin_get_port_by_index(lilv_plugin, i);
+        if (lilv_port_is_a(lilv_plugin, port, lv2_AudioPort)) {
+            if (lilv_port_is_a(lilv_plugin, port, lv2_OutputPort)) {
+                //~ LOGD("[%s %d]: found output port", lilv_node_as_string(lilv_plugin_get_name(lilv_plugin)), i);
+                if (outputPort == -1)
+                    outputPort = i;
+                else if (outputPort2 == -1)
+                    outputPort2 = i;
+                else
+                    LOGE("[%s %d]: is third output port", lilv_node_as_string(lilv_plugin_get_name(lilv_plugin)), i);
+            } else if (lilv_port_is_a(lilv_plugin, port, lv2_InputPort)) {
+                //~ LOGD("[%s %d]: found input port", lilv_node_as_string(lilv_plugin_get_name(lilv_plugin)), i);
+                if (inputPort == -1)
+                    inputPort = i;
+                else if (inputPort2 == -1)
+                    inputPort2 = i;
+                else
+                    LOGE("[%s %d]: is third input port", lilv_node_as_string(lilv_plugin_get_name(lilv_plugin)), i);
+            }
+
+            continue;            
+        }
+
+        if (lilv_port_is_a(lilv_plugin, port, lv2_ControlPort) and lilv_port_is_a(lilv_plugin, port, lv2_InputPort) == false)
+            continue;
+
+        PluginControl* pluginControl = new PluginControl(lilv_plugin, i);
+
+        pluginControl->min = min_values[i];
+        pluginControl->max = max_values[i];
+        pluginControl->default_value = def_values[i];
+
+        pluginControl->name = lilv_node_as_string(lilv_port_get_name(lilv_plugin, port));
+        pluginControls.push_back(pluginControl);
+    }
+
+    print();
+    OUT
+}
