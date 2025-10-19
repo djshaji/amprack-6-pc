@@ -9,15 +9,7 @@ LADSPA_Data PluginControl::control_rounding(LADSPA_Data _val)
 }
 
 void PluginControl::setValue (float value) {
-//    val = value ;
-//    if (isLogarithmic) {
-//        float ex = expf(value) ;
-//        LOGD ("is log %f -> %f", value, ex);
-//        *def = ex;
-//    }
-//    else {
-    *def = value;
-//    }
+    * def = value;
 }
 
 void PluginControl::setPresetValue (float value) {

@@ -248,24 +248,7 @@ static int pass_filename_to_plugin(const char* filename) {
 }
 
 // Process atom sequences for file paths
-static void process_atom_sequences() {
-    if (!output_sequence) return;
-    
-    LV2_ATOM_SEQUENCE_FOREACH(output_sequence, ev) {
-        const LV2_Atom* atom = &ev->body;
-        
-        if (atom->type == options_urids.atom_Path) {
-            const char* path = (const char*)(atom + 1);
-            printf("Received atom:Path from plugin: %s\n", path);
-        } else if (atom->type == options_urids.atom_String) {
-            const char* str = (const char*)(atom + 1);
-            printf("Received atom:String from plugin: %s\n", str);
-        }
-    }
-    
-    // Reset output sequence for next cycle
-    output_sequence->atom.size = sizeof(LV2_Atom_Sequence_Body);
-}
+// Process atom sequences for file paths\nstatic void process_atom_sequences() {\n    if (!output_sequence) return;\n    \n    LV2_ATOM_SEQUENCE_FOREACH(output_sequence, ev) {\n        const LV2_Atom* atom = &ev->body;\n        \n        if (atom->type == options_urids.atom_Path) {\n            const char* path = (const char*)(atom + 1);\n            printf(\"Received atom:Path from plugin: %s\\n\", path);\n        } else if (atom->type == options_urids.atom_String) {\n            const char* str = (const char*)(atom + 1);\n            printf(\"Received atom:String from plugin: %s\\n\", str);\n        }\n    }\n    \n    // Reset output sequence for next cycle\n    output_sequence->atom.size = sizeof(LV2_Atom_Sequence_Body);\n}\n\n// Set control port value with validation\nstatic int set_control_value(float* control_values, float* min_values, float* max_values, \n                             const char** port_names, uint32_t port_index, float value) {\n    if (!control_values || !min_values || !max_values) {\n        printf(\"Error: Control arrays not initialized\\n\");\n        return -1;\n    }\n    \n    // Clamp value to valid range\n    float min_val = min_values[port_index];\n    float max_val = max_values[port_index];\n    \n    if (value < min_val) {\n        printf(\"Warning: Value %.3f below minimum %.3f for port %u, clamping\\n\", \n               value, min_val, port_index);\n        value = min_val;\n    } else if (value > max_val) {\n        printf(\"Warning: Value %.3f above maximum %.3f for port %u, clamping\\n\", \n               value, max_val, port_index);\n        value = max_val;\n    }\n    \n    // Set the value\n    control_values[port_index] = value;\n    \n    printf(\"Set control port %u (%s) to %.3f (range: %.3f - %.3f)\\n\", \n           port_index, port_names ? port_names[port_index] : \"Unknown\", \n           value, min_val, max_val);\n    \n    return 0;\n}\n\n// Set control value by port name\nstatic int set_control_by_name(const LilvPlugin* plugin, float* control_values, \n                              float* min_values, float* max_values, \n                              const char* port_name, float value) {\n    if (!plugin || !control_values || !port_name) {\n        printf(\"Error: Invalid parameters for control setting\\n\");\n        return -1;\n    }\n    \n    uint32_t n_ports = lilv_plugin_get_num_ports(plugin);\n    LilvNode* control_class = lilv_new_uri(NULL, LV2_CORE__ControlPort);\n    LilvNode* input_class = lilv_new_uri(NULL, LV2_CORE__InputPort);\n    \n    for (uint32_t i = 0; i < n_ports; i++) {\n        const LilvPort* port = lilv_plugin_get_port_by_index(plugin, i);\n        \n        if (lilv_port_is_a(plugin, port, control_class) && \n            lilv_port_is_a(plugin, port, input_class)) {\n            \n            LilvNode* name_node = lilv_port_get_name(plugin, port);\n            const char* current_name = lilv_node_as_string(name_node);\n            \n            if (strcmp(current_name, port_name) == 0) {\n                lilv_node_free(name_node);\n                lilv_node_free(control_class);\n                lilv_node_free(input_class);\n                return set_control_value(control_values, min_values, max_values, NULL, i, value);\n            }\n            \n            lilv_node_free(name_node);\n        }\n    }\n    \n    lilv_node_free(control_class);\n    lilv_node_free(input_class);\n    \n    printf(\"Error: Control port '%s' not found\\n\", port_name);\n    return -1;\n}\n\n// Animate control values during processing\nstatic void animate_controls(float* control_values, float* min_values, float* max_values, \n                           uint32_t n_ports, int frame) {\n    LilvNode* control_class = lilv_new_uri(NULL, LV2_CORE__ControlPort);\n    LilvNode* input_class = lilv_new_uri(NULL, LV2_CORE__InputPort);\n    \n    // Find first control port and animate it\n    for (uint32_t i = 0; i < n_ports; i++) {\n        if (control_values[i] != 0) { // This is a control port\n            float range = max_values[i] - min_values[i];\n            float mid = min_values[i] + range * 0.5f;\n            float variation = range * 0.3f * sinf(frame * 0.1f);\n            \n            control_values[i] = mid + variation;\n            \n            if (frame % 100 == 0) { // Print every 100 frames\n                printf(\"  Animated control port %u: %.3f\\n\", i, control_values[i]);\n            }\n            break; // Only animate first control\n        }\n    }\n    \n    lilv_node_free(control_class);\n    lilv_node_free(input_class);\n}\n\n// Pass a filename to the plugin with validation and error handling\nstatic int pass_filename_to_plugin(const char* filename) {"\n    if (!filename || strlen(filename) == 0) {\n        printf(\"Error: Invalid filename provided\\n\");\n        return -1;\n    }\n    \n    if (!input_sequence) {\n        printf(\"Error: Atom sequences not initialized\\n\");\n        return -1;\n    }\n    \n    // Check if file exists (optional validation)\n    FILE* test_file = fopen(filename, \"r\");\n    if (test_file) {\n        fclose(test_file);\n        printf(\"File exists, passing to plugin: %s\\n\", filename);\n    } else {\n        printf(\"Warning: File may not exist, but passing to plugin anyway: %s\\n\", filename);\n    }\n    \n    // Reset sequence for new file\n    input_sequence->atom.size = sizeof(LV2_Atom_Sequence_Body);\n    \n    // Create and send path atom\n    lv2_atom_forge_set_buffer(&forge, forge_buffer, sizeof(forge_buffer));\n    \n    LV2_Atom_Forge_Frame frame;\n    lv2_atom_forge_sequence_head(&forge, &frame, options_urids.atom_eventTransfer);\n    \n    // Add path event at frame 0\n    lv2_atom_forge_frame_time(&forge, 0);\n    lv2_atom_forge_object(&forge, &frame, 0, options_urids.patch_Set);\n    lv2_atom_forge_key(&forge, options_urids.patch_property);\n    lv2_atom_forge_urid(&forge, options_urids.atom_Path);\n    lv2_atom_forge_key(&forge, options_urids.patch_value);\n    lv2_atom_forge_path(&forge, filename, strlen(filename));\n    \n    lv2_atom_forge_pop(&forge, &frame);\n    \n    // Copy forged sequence to input sequence\n    LV2_Atom_Sequence* seq = (LV2_Atom_Sequence*)forge.buf;\n    memcpy(input_sequence, seq, sizeof(LV2_Atom_Sequence) + seq->atom.size);\n    \n    printf(\"Successfully passed filename to plugin: %s\\n\", filename);\n    printf(\"  Atom sequence size: %u bytes\\n\", input_sequence->atom.size);\n    printf(\"  Event time: 0 frames\\n\");\n    \n    return 0;\n}"
 
 int main(int argc, char* argv[]) {
     printf("=== LV2 Host using LILV - Simple Demo ===\n\n");
@@ -540,12 +523,7 @@ int main(int argc, char* argv[]) {
     
     // Test the dedicated filename passing function
     printf("\nTesting filename passing function...\n");
-    pass_filename_to_plugin("/usr/share/sounds/alsa/Front_Left.wav");
-    pass_filename_to_plugin("/tmp/nonexistent.wav");
-    pass_filename_to_plugin("relative_path.wav");
-    
-    // Generate and process dummy audio
-    printf("\nProcessing dummy audio data...\n");
+    pass_filename_to_plugin(\"/usr/share/sounds/alsa/Front_Left.wav\");\n    pass_filename_to_plugin(\"/tmp/nonexistent.wav\");\n    pass_filename_to_plugin(\"relative_path.wav\");\n    \n    // Test control value setting\n    printf(\"\\nTesting control value setting...\\n\");\n    \n    // Find and modify first control port\n    for (uint32_t i = 0; i < n_ports; i++) {\n        const LilvPort* port = lilv_plugin_get_port_by_index(chosen_plugin, i);\n        if (lilv_port_is_a(chosen_plugin, port, control_class) && \n            lilv_port_is_a(chosen_plugin, port, input_class)) {\n            \n            LilvNode* port_name = lilv_port_get_name(chosen_plugin, port);\n            const char* name = lilv_node_as_string(port_name);\n            \n            printf(\"Testing control: %s [port %u]\\n\", name, i);\n            \n            // Test different values\n            float test_values[] = {min_values[i], max_values[i] * 0.25f, \n                                 max_values[i] * 0.5f, max_values[i] * 0.75f, max_values[i]};\n            const char* labels[] = {\"minimum\", \"25%\", \"50%\", \"75%\", \"maximum\"};\n            \n            for (int j = 0; j < 5; j++) {\n                set_control_value(control_values, min_values, max_values, NULL, i, test_values[j]);\n                printf(\"  %s value: %.3f\\n\", labels[j], test_values[j]);\n            }\n            \n            // Reset to default\n            control_values[i] = def_values[i];\n            printf(\"  Reset to default: %.3f\\n\", def_values[i]);\n            \n            lilv_node_free(port_name);\n            break; // Only test first control port\n        }\n    }\n    \n    // Generate and process dummy audio\n    printf(\"\\nProcessing dummy audio data...\\n\");"
     
     for (int frame = 0; frame < 5; frame++) {
         // Generate sine wave input (440 Hz)
@@ -559,11 +537,7 @@ int main(int argc, char* argv[]) {
             if (phase >= 2.0f * M_PI) phase -= 2.0f * M_PI;
         }
         
-        // Clear output
-        memset(output_buffer, 0, BUFFER_SIZE * sizeof(float));
-        
-        // Process audio and atoms
-        lilv_instance_run(instance, BUFFER_SIZE);
+                // Clear output\n        memset(output_buffer, 0, BUFFER_SIZE * sizeof(float));\n        \n        // Animate control values for demonstration (after first frame)\n        if (frame > 0) {\n            animate_controls(control_values, min_values, max_values, n_ports, frame);\n        }\n        \n        // Process audio and atoms\n        lilv_instance_run(instance, BUFFER_SIZE);"
         
         // Process any atom responses from plugin
         process_atom_sequences();
