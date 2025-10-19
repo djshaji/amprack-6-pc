@@ -20,6 +20,8 @@ class PluginControl {
 
 public:
     const LilvPort* lilv_port; ///< Port description
+    int file_port_size = 8192 ;
+    LV2_Atom_Sequence *filePort;
     int lilv_port_index; ///< Port index in plugin
     enum Type {
         FLOAT = 0,
@@ -42,7 +44,9 @@ public:
         ⠀⣿⣿⢿⣿⣿⣿⣿⣿⣿⠟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
         ⠀⠉⠀⠀⠀⠉⠉⠉⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
          */
-        ATOM = 3
+        ATOM = 3,
+        LV2_ATOM_INPUT_PORT = 4,
+        LV2_ATOM_OUTPUT_PORT = 5
     };
 
     unsigned long port;

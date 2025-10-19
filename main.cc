@@ -135,8 +135,9 @@ void quit (void * w, void * d) {
     
     LOGD ("Ok done, goodbye xoxo ...\n");
 
-    gtk_window_destroy ((GtkWindow *)window -> gobj ());
+    // gtk_window_destroy ((GtkWindow *)window -> gobj ());
     g_application_quit ((GApplication *)window -> app);
+    // exit (0) ;
     OUT
 }
 

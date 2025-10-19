@@ -126,3 +126,11 @@ rpm:
 
 win32-ip: win_ip.cc
 	$(CPP) -o win-ip win_ip.cc -lws2_32 -lwsock32 -liphlpapi
+test-lilv: lilv_test.c
+	$(CC) lilv_test.c -o lilv_test -I/usr/include/lilv-0 -I/usr/include/sratom-0 -I/usr/include/sord-0 -I/usr/include/serd-0 -I/usr/include/zix-0 -llilv-0 -lsord-0 -lserd-0
+
+lilv-host: lilv_host.c
+	$(CC) lilv_host.c -o lilv_host -I/usr/include/lilv-0 -I/usr/include/sratom-0 -I/usr/include/sord-0 -I/usr/include/serd-0 -I/usr/include/zix-0 -llilv-0 -lsord-0 -lserd-0 -lm
+
+lilv-full-test: lilv_full_test.c
+	$(CC) lilv_full_test.c -o lilv_full_test -I/usr/include/lilv-0 -I/usr/include/sratom-0 -I/usr/include/sord-0 -I/usr/include/serd-0 -I/usr/include/zix-0 -llilv-0 -lsord-0 -lserd-0 -lm

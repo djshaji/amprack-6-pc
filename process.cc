@@ -35,6 +35,11 @@ void Processor::process (int n_samples, float * in, float * data) {
     
     for (int i = 0 ; i < activePlugins ; i ++) {
         //~ LOGD ("[process plugin] %d", i);
+        if (lilv_instance [i] == NULL) {
+            LOGE ("lilv instance %d is null", i);
+            continue;
+        }
+
         if (inputPorts [i] != -1)
             lilv_instance_connect_port ((LilvInstance *) lilv_instance [i], inputPorts [i], (LADSPA_Data *) data);
         if (outputPorts [i] != -1)

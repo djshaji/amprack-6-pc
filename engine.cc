@@ -15,11 +15,12 @@ bool Engine::addPlugin(char* uri, int pluginIndex) {
         return false ;
     }
 
-    processor->bypass = false ;
     buildPluginChain();
+    processor->bypass = false ;
     OUT
     return true ;
 }
+
 bool Engine::addPlugin_(char* library, int pluginIndex, SharedLibrary::PluginType _type) {
     IN
     processor->bypass = true ;
@@ -265,6 +266,13 @@ json Engine::getPreset () {
         
         std::string controls = std::string () ;
         for (int x = 0 ; x < plugin->pluginControls.size () ; x ++) {
+            if (plugin->pluginControls.at (x)->type == PluginControl::Type::ATOM ||
+                plugin->pluginControls.at (x)->type == PluginControl::Type::LV2_ATOM_INPUT_PORT ||
+                plugin->pluginControls.at (x)->type == PluginControl::Type::LV2_ATOM_OUTPUT_PORT) {
+                // skip atom ports
+                continue ;
+            }
+
             controls.append (std::to_string (*plugin->pluginControls.at (x)->def));
             if (x < (plugin->pluginControls.size () + 2))
                 controls.append (";");
